@@ -1,0 +1,112 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: factorio
+  name: factorio
+  namespace: factorio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: factorio
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: factorio
+    spec:
+      securityContext:
+        runAsUser: 1026
+        runAsGroup: 100
+        fsGroup: 100
+      volumes:
+        - name: factorio-gamefiles-volume
+          persistentVolumeClaim:
+            claimName: factorio-gamefiles-pvc
+        - name: factorio-saves-volume
+          persistentVolumeClaim:
+            claimName: factorio-saves-pvc
+        - name: factorio-game-configs
+          configMap:
+            name: factorio-game-configs
+            defaultMode: 0755
+      initContainers:
+      - name: init-downloader
+        image: docker.io/chriszit/factorio-server-base:1.0.0
+        imagePullPolicy: IfNotPresent
+        command: ['sh', '-c', 'rm -rf /home/serviceuser/factorio-server/*; /config/download.sh']
+        volumeMounts:
+        - name: factorio-gamefiles-volume
+          mountPath: /home/serviceuser/factorio-server
+        - name: factorio-game-configs
+          mountPath: /config/
+      containers:
+      - name: factorio-server
+        image: debian:stable-slim
+        imagePullPolicy: IfNotPresent
+        workingDir: /home/serviceuser/factorio-server
+        resources:
+          limits:
+            cpu: "4"
+            memory: "8Gi"
+          requests:
+            cpu: "1"
+            memory: "2Gi"
+        ports:
+        - containerPort: ${PORT}
+          name: ${PORT}-udp
+          protocol: UDP
+        env:
+          - name: WORLD_NAME
+            value: ${SERVER_NAME}
+        command:
+          - 'sh'
+          - '-c'
+          - |
+            SAVE_FILE="_DOLLAR_HOME/factorio-server/save/_DOLLAR_WORLD_NAME.zip"
+            FACTORIO_BIN="_DOLLAR_HOME/factorio-server/bin/x64/factorio"
+            CONFIG_PATH="_DOLLAR_HOME/factorio-server/config"
+
+            if [ ! -f "_DOLLAR_SAVE_FILE" ]; then
+                "_DOLLAR_FACTORIO_BIN" \
+                  --create "_DOLLAR_{SAVE_FILE}" \
+                  --map-gen-settings "_DOLLAR_CONFIG_PATH/map-gen-settings.json" \
+                  --map-settings "_DOLLAR_CONFIG_PATH/map-settings.json"
+            fi
+
+            "_DOLLAR_FACTORIO_BIN" \
+            --start-server "_DOLLAR_SAVE_FILE" \
+            --server-settings "_DOLLAR_CONFIG_PATH/server-settings.json" \
+            --server-adminlist "_DOLLAR_CONFIG_PATH/server-adminlist.json" \
+            --use-server-whitelist \
+            --server-whitelist "_DOLLAR_CONFIG_PATH/server-settings.json" \
+            --server-banlist "_DOLLAR_CONFIG_PATH/server-banlist.json"
+        volumeMounts:
+        - name: factorio-gamefiles-volume
+          mountPath: /home/serviceuser/factorio-server
+        - name: factorio-saves-volume
+          mountPath: /home/serviceuser/factorio-server/saves
+        - name: factorio-game-configs
+          mountPath: /home/serviceuser/factorio-server/config/server-settings.json
+          subPath: server-settings.json
+        - name: factorio-game-configs
+          mountPath: /home/serviceuser/factorio-server/config/map-gen-settings.json
+          subPath: map-gen-settings.json
+        - name: factorio-game-configs
+          mountPath: /home/serviceuser/factorio-server/config/map-settings.json
+          subPath: map-settings.json
+        - name: factorio-game-configs
+          mountPath: /home/serviceuser/factorio-server/mods/mod-list.json
+          subPath: mod-list.json
+        - name: factorio-game-configs
+          mountPath: /home/serviceuser/factorio-server/config/server-adminlist.json
+          subPath: server-adminlist.json
+        - name: factorio-game-configs
+          mountPath: /home/serviceuser/factorio-server/config/server-whitelist.json
+          subPath: server-whitelist.json
+        - name: factorio-game-configs
+          mountPath: /home/serviceuser/factorio-server/config/server-banlist.json
+          subPath: server-banlist.json

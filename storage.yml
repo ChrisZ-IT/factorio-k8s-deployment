@@ -1,0 +1,77 @@
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: nfs-storage
+  annotations:
+    kubectl.kubernetes.io/delete-policy: "Prevent"
+provisioner: kubernetes.io/no-provisioner
+volumeBindingMode: Immediate
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: factorio-gamefiles-pv
+  namespace: factorio
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-storage
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+    - _netdev
+  nfs:
+    path: /volume1/kubernetes_volumes/factorio/factorio_dedicated_server
+    server: 192.168.0.110
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: factorio-gamefiles-pvc
+  namespace: factorio
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-storage
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: factorio-saves-pv
+  namespace: factorio
+spec:
+  capacity:
+    storage: 1Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: nfs-storage
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+    - _netdev
+  nfs:
+    path: /volume1/kubernetes_volumes/factorio/saves
+    server: 192.168.0.110
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: factorio-saves-pvc
+  namespace: factorio
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-storage
+  resources:
+    requests:
+      storage: 1Gi
