@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: factorio-svc
+  namespace: factorio
+spec:
+  type: LoadBalancer
+  selector:
+    app: factorio
+  externalTrafficPolicy: Local
+  ports:
+  - name: ${PORT}-udp
+    port: ${PORT}
+    protocol: UDP
+    targetPort: ${PORT}
