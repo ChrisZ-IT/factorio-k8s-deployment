@@ -314,11 +314,15 @@ data:
       dl_arch="linux-arm64"
     fi
 
+    # Ensure user has permission and old server files have been cleaned up
+    chmod -R 755 _DOLLAR_{HOME}/factorio-server
+    rm -rf _DOLLAR_{HOME}/factorio-server/*
+
     # Download latest server version
     download_path="https://factorio.com/get-download/stable/headless/_DOLLAR_{dl_arch}"
     mkdir _DOLLAR_{HOME}/temp
     curl -Lo _DOLLAR_{HOME}/temp/factorio_server.tar.xz _DOLLAR_download_path
 
     # extracts server files
-    tar -xvf _DOLLAR_{HOME}/temp/factorio_server.tar.xz -C _DOLLAR_{HOME}/temp && \
+    tar -xvf _DOLLAR_{HOME}/temp/factorio_server.tar.xz -C _DOLLAR_{HOME}/temp
     mv _DOLLAR_{HOME}/temp/factorio/* _DOLLAR_{HOME}/factorio-server

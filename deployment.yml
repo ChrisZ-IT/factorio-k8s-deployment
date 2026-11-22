@@ -36,17 +36,18 @@ spec:
       initContainers:
       - name: init-downloader
         image: docker.io/chriszit/factorio-server-base:1.0.0
-        imagePullPolicy: IfNotPresent
-        command: ['sh', '-c', 'rm -rf /home/serviceuser/factorio-server/*; /config/download.sh']
+        imagePullPolicy: Always
+        command: ['sh', '-c', '/home/serviceuser/download.sh']
         volumeMounts:
         - name: factorio-gamefiles-volume
           mountPath: /home/serviceuser/factorio-server
         - name: factorio-game-configs
-          mountPath: /config/
+          mountPath: /home/serviceuser/download.sh
+          subPath: download.sh
       containers:
       - name: factorio-server
         image: debian:stable-slim
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         workingDir: /home/serviceuser/factorio-server
         resources:
           limits:
@@ -66,9 +67,11 @@ spec:
           - 'sh'
           - '-c'
           - |
-            SAVE_FILE="_DOLLAR_HOME/factorio-server/save/_DOLLAR_WORLD_NAME.zip"
-            FACTORIO_BIN="_DOLLAR_HOME/factorio-server/bin/x64/factorio"
-            CONFIG_PATH="_DOLLAR_HOME/factorio-server/config"
+            SAVE_FILE="/home/serviceuser/saves/_DOLLAR_WORLD_NAME.zip"
+            FACTORIO_BIN="/home/serviceuser/factorio-server/bin/x64/factorio"
+            CONFIG_PATH="/home/serviceuser/config"
+
+            chmod -R 755 /home/serviceuser/saves
 
             if [ ! -f "_DOLLAR_SAVE_FILE" ]; then
                 "_DOLLAR_FACTORIO_BIN" \
@@ -82,31 +85,31 @@ spec:
             --server-settings "_DOLLAR_CONFIG_PATH/server-settings.json" \
             --server-adminlist "_DOLLAR_CONFIG_PATH/server-adminlist.json" \
             --use-server-whitelist \
-            --server-whitelist "_DOLLAR_CONFIG_PATH/server-settings.json" \
+            --server-whitelist "_DOLLAR_CONFIG_PATH/server-whitelist.json" \
             --server-banlist "_DOLLAR_CONFIG_PATH/server-banlist.json"
         volumeMounts:
         - name: factorio-gamefiles-volume
           mountPath: /home/serviceuser/factorio-server
         - name: factorio-saves-volume
-          mountPath: /home/serviceuser/factorio-server/saves
+          mountPath: /home/serviceuser/saves
         - name: factorio-game-configs
-          mountPath: /home/serviceuser/factorio-server/config/server-settings.json
+          mountPath: /home/serviceuser/config/server-settings.json
           subPath: server-settings.json
         - name: factorio-game-configs
-          mountPath: /home/serviceuser/factorio-server/config/map-gen-settings.json
+          mountPath: /home/serviceuser/config/map-gen-settings.json
           subPath: map-gen-settings.json
         - name: factorio-game-configs
-          mountPath: /home/serviceuser/factorio-server/config/map-settings.json
+          mountPath: /home/serviceuser/config/map-settings.json
           subPath: map-settings.json
         - name: factorio-game-configs
           mountPath: /home/serviceuser/factorio-server/mods/mod-list.json
           subPath: mod-list.json
         - name: factorio-game-configs
-          mountPath: /home/serviceuser/factorio-server/config/server-adminlist.json
+          mountPath: /home/serviceuser/config/server-adminlist.json
           subPath: server-adminlist.json
         - name: factorio-game-configs
-          mountPath: /home/serviceuser/factorio-server/config/server-whitelist.json
+          mountPath: /home/serviceuser/config/server-whitelist.json
           subPath: server-whitelist.json
         - name: factorio-game-configs
-          mountPath: /home/serviceuser/factorio-server/config/server-banlist.json
+          mountPath: /home/serviceuser/config/server-banlist.json
           subPath: server-banlist.json
