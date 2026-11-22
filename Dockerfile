@@ -2,8 +2,8 @@ FROM debian:stable-slim
 
 RUN <<EOF
 apt-get update && apt-get upgrade -y
-apt-get install -y --no-install-recommends curl ca-certificates glibc
-rm -rf /var/lib/apt/lists/*
+apt-get install -y --no-install-recommends curl ca-certificates xz-utils
+&& rm -rf /var/lib/apt/lists/*
 EOF
 
 RUN useradd --no-log-init -u 1026 -g 100 -m -s /bin/bash serviceuser

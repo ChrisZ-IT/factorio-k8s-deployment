@@ -321,4 +321,4 @@ data:
 
     # extracts server files
     tar -xvf _DOLLAR_{HOME}/temp/factorio_server.tar.xz -C _DOLLAR_{HOME}/temp && \
-    mv _DOLLAR_{HOME}/temp/factorio _DOLLAR_{HOME}/factorio-server
+    mv _DOLLAR_{HOME}/temp/factorio/* _DOLLAR_{HOME}/factorio-server
